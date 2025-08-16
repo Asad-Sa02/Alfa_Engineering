@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import '../App.css';
 import './button.css';
 import Services from './Services';
+import OrderList from './orders/OrderList';
 // import Reviews from './cutomers/Reviews';
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
 </button>
 
       </section>
+      <OrderList></OrderList>
 
       {/* Scrolling Image Gallery */}
       <section className="gallery">
