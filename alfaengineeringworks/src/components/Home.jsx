@@ -20,7 +20,7 @@ export default function Home() {
 </button>
 
       </section>
-      <OrderList></OrderList>
+      {/* <OrderList></OrderList> */}
 
       {/* Scrolling Image Gallery */}
       <section className="gallery">
