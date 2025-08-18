@@ -6,9 +6,13 @@ const utils = require('../utils.js');
 const cryptoJs = require('crypto-js');
 const jwt = require('jsonwebtoken');
 const config = require('../config.js');
+const jwtSecret = config.secret
+;
+// console.log(jwtSecret)
 
 
-router.post('/register', async (req, res) => {
+
+router.post('/register', async (req, res) => { 
  const { username, password } = req.body;
  try{
 encryptedPassword = String(cryptoJs.SHA256(password));
@@ -38,15 +42,18 @@ router.post('/login', async (req, res) => {
         if (users.length === 0) {
             return res.send(utils.createError("Invalid username or password"));
         }
+        // console.log([users])
         // Generate JWT token
         const user = users[0];
         // console.log(user) 
         const token =jwt.sign({
             id: user['USER_ID'],
             username: user['USERNAME']
-        },config.secret
+        },jwtSecret
     
     )
+    // console.log(token)
+    // console.log(jwtSecret)
     // console.log({token,id:user['USER_ID'],username:user['USERNAME']})
      res.send(utils.createSuccess({
         token,
@@ -67,5 +74,47 @@ router.post('/login', async (req, res) => {
             res.send(utils.createError(ex));
         }
     })
+
+    //here user will not explicitly add his user id it should get it from the logged in info
+router.post('/add-order', async(req,res)=>{
+    const {total, payment, delivered, userId,
+             itemId, qyt} = req.body;
+    const connection = await db.getConnection();
+
+   try {
+    await connection.beginTransaction();
+   ;
+    const [orderResult] = await connection.execute(
+         `
+        INSERT INTO ORDERS(TOTAL, PAYMENT, DELIVERED, USER_ID) 
+        VALUES (?, ?, ?, ?);
+    `,
+        [total, payment, delivered, userId]
+    ) 
+    // console.log([total, payment, delivered, userId])
+    const generatedOrderId = orderResult.insertId;
+    // res.send(utils.createSuccess({
+    //     orderResult})); //
+    await connection.execute(
+     `
+        INSERT INTO ORDER_ITEMS(ORDER_ID, ITEM_ID, QUANTITY) 
+        VALUES (?, ?, ?);
+    `,
+        [generatedOrderId, itemId, qyt]
+    );
+    await connection.commit();
+    connection.release();
+
+    res.send(utils.createSuccess({
+        orderId: generatedOrderId,
+        message: "Order placed successfully"
+    }));
+   } catch (error) {
+    await connection.rollback();
+    connection.release();
+    res.send(utils.createError(error));
+    
+   }
+})
 
     module.exports = router;

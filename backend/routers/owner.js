@@ -2,6 +2,7 @@ const express = require('express');
 const utils = require('../utils.js');
 const db = require('../db');
 const router = express.Router();
+require('dotenv').config();
 
 //make pending orders not this this is for admin
 router.get('/users',async(req,res)=>{
@@ -66,7 +67,7 @@ router.get('/order-details', async(req,res)=>{
 })
 
 router.get('/order-detailsby/:username', async(req,res)=>{
-    console.log("detailsby api")
+    // console.log("detailsby api")
     const {username} = req.params;
     console.log(username)
     try {
@@ -92,9 +93,14 @@ router.get('/order-detailsby/:username', async(req,res)=>{
 
     `
         const [result]= await db.execute(statement,[username])
-        console.log(result)
-        console.log(username)
+        // console.log(result)
+        // console.log(username)
+        if(result.length===0)
+        {
+            return res.send(utils.createError("No orders found for this user"));
+        }
         res.send(utils.createSuccess(result));
+        
     } catch (error) {
         res.send(utils.createError(error)); 
     }
@@ -128,15 +134,59 @@ router.get('/order-detailsby/:username', async(req,res)=>{
 //     }
 // })
 
+//better way to do it update db,js add {multiplestatements:true}
+router.post('/add-order', async(req,res)=>{
+    const {total, payment, delivered, userId,
+             itemId, qyt} = req.body;
+    const connection = await db.getConnection();
+
+   try {
+    await connection.beginTransaction();
+   ;
+    const [orderResult] = await connection.execute(
+         `
+        INSERT INTO ORDERS(TOTAL, PAYMENT, DELIVERED, USER_ID) 
+        VALUES (?, ?, ?, ?);
+    `,
+        [total, payment, delivered, userId]
+    ) 
+    // console.log([total, payment, delivered, userId])
+    const generatedOrderId = orderResult.insertId;
+    // res.send(utils.createSuccess({
+    //     orderResult})); //
+    await connection.execute(
+     `
+        INSERT INTO ORDER_ITEMS(ORDER_ID, ITEM_ID, QUANTITY) 
+        VALUES (?, ?, ?);
+    `,
+        [generatedOrderId, itemId, qyt]
+    );
+    await connection.commit();
+    connection.release();
+
+    res.send(utils.createSuccess({
+        orderId: generatedOrderId,
+        message: "Order placed successfully"
+    }));
+   } catch (error) {
+    await connection.rollback();
+    connection.release();
+    res.send(utils.createError(error));
+    
+   }
+})
+
 
 
 router.get('/dummy' , async (req, res)=>{
     try{
         res.send(utils.createSuccess("dummy api"));
     console.log('dummy api ')
+    
     }
     catch(ex){
         res.send(utils.createError(ex));
     }
+
 })
 module.exports = router;

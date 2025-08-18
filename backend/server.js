@@ -6,13 +6,13 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const config = require('./config.js');
 const utils = require('./utils.js');
-
+// const jwtSecret=require('dotenv').config();
 // 2
 app.use(cors());
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 
-
+// console.log(jwtSecret.parsed.JWT_SECRET)
 //middleware 
 app.use((req,res,next)=>{
     const skipPaths = ['/user/register', '/user/login'];
@@ -33,6 +33,7 @@ app.use((req,res,next)=>{
                 next();
             }
             catch(ex){
+                console.log(ex)
                 res.send(utils.createError("Invalid token"));
             }
         }
