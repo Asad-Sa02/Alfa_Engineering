@@ -13,12 +13,12 @@ const jwtSecret = config.secret
 
 
 router.post('/register', async (req, res) => { 
- const { username, password } = req.body;
+ const { username, password,contact } = req.body;
  try{
 encryptedPassword = String(cryptoJs.SHA256(password));
 const statement = ` 
-                    insert into user (username,password) values (?,?)`
-const result = await db.execute(statement, [username,encryptedPassword]);
+                    insert into user (username,password,contact) values (?,?,?)`
+const result = await db.execute(statement, [username,encryptedPassword,contact]);
 console.log(result)
 res.send(utils.createSuccess(result))
 }
@@ -48,7 +48,8 @@ router.post('/login', async (req, res) => {
         // console.log(user) 
         const token =jwt.sign({
             id: user['USER_ID'],
-            username: user['USERNAME']
+            username: user['USERNAME'],
+            role:user['role']
         },jwtSecret
     
     )
@@ -58,7 +59,8 @@ router.post('/login', async (req, res) => {
      res.send(utils.createSuccess({
         token,
         id:user['USER_ID'], 
-        username:user['USERNAME']}
+        username:user['USERNAME'],
+        role:user['role']}
      ));
     }
     catch(ex){
@@ -74,10 +76,11 @@ router.post('/login', async (req, res) => {
             res.send(utils.createError(ex));
         }
     })
+    
 
     //here user will not explicitly add his user id it should get it from the logged in info
 router.post('/add-order', async(req,res)=>{
-    const {total, payment, delivered, userId,
+    const {total, userId,
              itemId, qyt} = req.body;
     const connection = await db.getConnection();
 
@@ -86,10 +89,10 @@ router.post('/add-order', async(req,res)=>{
    ;
     const [orderResult] = await connection.execute(
          `
-        INSERT INTO ORDERS(TOTAL, PAYMENT, DELIVERED, USER_ID) 
-        VALUES (?, ?, ?, ?);
+        INSERT INTO ORDERS(TOTAL, PAYMENT_STATUS,STATUS , USER_ID) 
+        VALUES (?, 'UNPAID', 'PENDING', ?);
     `,
-        [total, payment, delivered, userId]
+        [total,userId]
     ) 
     // console.log([total, payment, delivered, userId])
     const generatedOrderId = orderResult.insertId;
@@ -117,4 +120,20 @@ router.post('/add-order', async(req,res)=>{
    }
 })
 
+router.patch('/cancel-order/:orderId', async(req, res)=>{
+    const {orderId} = req.params;
+    try{
+    const statement = `
+        UPDATE ORDERS SET STATUS = 'CANCELLED' WHERE ORDER_ID = ? AND STATUS = 'PENDING';
+    `
+    const [result] = await db.execute(statement, [orderId]);
+    if (result.affectedRows === 0) 
+        return res.send(utils.createError("Order not found or cannot be cancelled"));
+
+        res.send(utils.createSuccess({message: "Order cancelled successfully"}));
+    }
+    catch(ex){
+        res.send(utils.createError(ex));
+    }
+})
     module.exports = router;

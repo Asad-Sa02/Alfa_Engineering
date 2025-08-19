@@ -40,7 +40,7 @@ router.get('/order-details', async(req,res)=>{
     const statement= `
     SELECT 
         ORDER_ITEMS.ORDER_ITEM_ID,
-        ORDERS.ORDER_ID,TOTAL,PAYMENT,DELIVERED,TIMEST,
+        ORDERS.ORDER_ID,TOTAL,PAYMENT_STATUS,STATUS,TIMEST,
             ITEM,PRICE,QUANTITY,SIZE,
                 USER.USER_ID,USERNAME 
     FROM 
@@ -69,12 +69,12 @@ router.get('/order-details', async(req,res)=>{
 router.get('/order-detailsby/:username', async(req,res)=>{
     // console.log("detailsby api")
     const {username} = req.params;
-    console.log(username)
+    // console.log(username)
     try {
  const statement= `
     SELECT 
         ORDER_ITEMS.ORDER_ITEM_ID,
-        ORDERS.ORDER_ID,TOTAL,PAYMENT,DELIVERED,TIMEST,
+        ORDERS.ORDER_ID,TOTAL,PAYMENT_STATUS,STATUS,TIMEST,
             ITEM,PRICE,QUANTITY,SIZE,
                 USER.USER_ID,USERNAME 
     FROM 
@@ -136,7 +136,7 @@ router.get('/order-detailsby/:username', async(req,res)=>{
 
 //better way to do it update db,js add {multiplestatements:true}
 router.post('/add-order', async(req,res)=>{
-    const {total, payment, delivered, userId,
+    const {total, userId,
              itemId, qyt} = req.body;
     const connection = await db.getConnection();
 
@@ -145,10 +145,10 @@ router.post('/add-order', async(req,res)=>{
    ;
     const [orderResult] = await connection.execute(
          `
-        INSERT INTO ORDERS(TOTAL, PAYMENT, DELIVERED, USER_ID) 
-        VALUES (?, ?, ?, ?);
+        INSERT INTO ORDERS(TOTAL, USER_ID,STATUS,PAYMENT_STATUS) 
+        VALUES (?, ?, 'PENDING', 'UNPAID');
     `,
-        [total, payment, delivered, userId]
+        [total, userId]
     ) 
     // console.log([total, payment, delivered, userId])
     const generatedOrderId = orderResult.insertId;
@@ -176,7 +176,31 @@ router.post('/add-order', async(req,res)=>{
    }
 })
 
-
+router.patch('/update-order/:orderId', async(req, res)=>{
+    const {orderId} = req.params;
+    const {status, paymentStatus} = req.body;
+    try {
+        const connection = await db.getConnection();
+        await connection.beginTransaction();
+        const [result] = await connection.execute(
+            `
+            UPDATE ORDERS 
+            SET STATUS=?, PAYMENT_STATUS=? 
+            WHERE ORDER_ID=?;
+            `,
+            [status, paymentStatus, orderId]
+        );
+        if (result.affectedRows === 0) {
+            await connection.rollback();
+            return res.send(utils.createError("Order not found"));
+        }
+        await connection.commit();
+        connection.release();
+        res.send(utils.createSuccess({message: "Order updated successfully"}));
+    } catch (error) {
+        res.send(utils.createError(error));
+    }
+})
 
 router.get('/dummy' , async (req, res)=>{
     try{
@@ -189,4 +213,27 @@ router.get('/dummy' , async (req, res)=>{
     }
 
 })
+// to delete this make safe transaction
+router.delete('/delete-order/:orderId', async(req, res)=>{
+    const {orderId} = req.params;
+    try{
+       const connection = await db.getConnection();
+       await connection.beginTransaction();
+      await connection.execute( 'DELETE FROM ORDER_ITEMS WHERE ORDER_ID=?', [orderId]);
+      const [result]= await connection.execute('DELETE FROM ORDERS WHERE ORDER_ID=?', [orderId]);
+      if(result.affectedRows === 0){
+        await connection.rollback();
+        return res.send(utils.createError("Order not found"));
+      }
+        await connection.commit();
+        connection.release();
+        res.send(utils.createSuccess({message: "Order deleted successfully"}));
+    }
+    catch(ex){
+        res.send(utils.createError(ex));
+         await connection.rollback();
+            connection.release();
+    }
+})
+
 module.exports = router;
