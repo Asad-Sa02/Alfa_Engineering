@@ -7,7 +7,9 @@ export default function Footer() {
       <div className="footer-content">
         <h2>Contact Us</h2>
         <p>Alfa Engineering & Fabrication Works</p>
-        <p>📍 Thane, Maharashtra, India</p>
+        <p >
+          📍 Turbhe, Maharashtra, India
+          </p>
         <p>📞 +91-9768217805</p>
         <p>📧 alfaengineering71@gmail.com</p>
       </div>

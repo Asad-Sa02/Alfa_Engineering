@@ -46,10 +46,13 @@ app.use((req,res,next)=>{
 //3
 const userRouter = require('./routers/users');
 const ownerRouter = require('./routers/owner');
-
+const itemRouter = require('./routers/items');
 // 4
+
 app.use('/user', userRouter);
 app.use('/owner', ownerRouter);
+app.use('/item', itemRouter);
+
 
 app.listen(port,'0.0.0.0',()=>{
     console.log(`server is running on ${port}`)

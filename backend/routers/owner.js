@@ -66,6 +66,11 @@ router.get('/order-details', async(req,res)=>{
     }
 })
 
+
+ router.get('/order-details/:username',async (req, res)=>{
+const {username} = req.body;
+// const st 
+ })
 router.get('/order-detailsby/:username', async(req,res)=>{
     // console.log("detailsby api")
     const {username} = req.params;
@@ -136,8 +141,7 @@ router.get('/order-detailsby/:username', async(req,res)=>{
 
 //better way to do it update db,js add {multiplestatements:true}
 router.post('/add-order', async(req,res)=>{
-    const {total, userId,
-             itemId, qyt} = req.body;
+    const {total, userId,items} = req.body;
     const connection = await db.getConnection();
 
    try {
@@ -154,13 +158,15 @@ router.post('/add-order', async(req,res)=>{
     const generatedOrderId = orderResult.insertId;
     // res.send(utils.createSuccess({
     //     orderResult})); //
+    for(const item of items){
     await connection.execute(
      `
         INSERT INTO ORDER_ITEMS(ORDER_ID, ITEM_ID, QUANTITY) 
         VALUES (?, ?, ?);
     `,
-        [generatedOrderId, itemId, qyt]
+        [generatedOrderId, item.itemId, item.qyt]
     );
+}
     await connection.commit();
     connection.release();
 
@@ -172,7 +178,7 @@ router.post('/add-order', async(req,res)=>{
     await connection.rollback();
     connection.release();
     res.send(utils.createError(error));
-    
+    console.log(error)
    }
 })
 

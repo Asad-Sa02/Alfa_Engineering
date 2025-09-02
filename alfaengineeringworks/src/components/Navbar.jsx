@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import '../App.css';
-import OrderModal from './cutomers/Order';
+// import OrderModal from './cutomers/Order';
 
 export default function Navbar() {
-  const [isOrderModalOpen, setOrderModalOpen] = useState(false);
+  // const [isOrderModalOpen, setOrderModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Close menu after clicking a link (for mobile UX)
@@ -54,16 +54,21 @@ export default function Navbar() {
           </a>
         </li>
         <li>
-          <a href="" onClick={handleLinkClick()}>
-            Login
+          <a href="/login" onClick={handleLinkClick()}>
+            Sign In
           </a>
         </li>
-        <li>
+                <li>
+          <a href="/register" onClick={handleLinkClick()}>
+            Sign Up
+          </a>
+        </li>
+        {/* <li>
           <a href="#order" onClick={handleLinkClick(() => setOrderModalOpen(true))}>
             Order
           </a>
-          <OrderModal isOpen={isOrderModalOpen} onClose={() => setOrderModalOpen(false)} />
-        </li>
+          {/* <OrderModal isOpen={isOrderModalOpen} onClose={() => setOrderModalOpen(false)} /> */}
+        {/* </li> */} 
       </ul>
     </nav>
   );

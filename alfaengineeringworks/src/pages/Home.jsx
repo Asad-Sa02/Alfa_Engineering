@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import '../App.css';
-import './button.css';
-import Services from './Services';
-import OrderList from './orders/OrderList';
-// import Reviews from './cutomers/Reviews';
+import '../components/button.css';
+import Services from '../components/Services';
+import Navbar from '../components/Navbar';
+import Reviews from '../components/Reviews';
+import Footer from '../components/footer';
+import GetOrders from '../components/GetOrders';
+import GetItems from '../components/GetItems';
 
 export default function Home() {
   return (
     <div className="homepage" id="home">
+      <Navbar></Navbar>
       {/* Hero Section */}
+<GetOrders></GetOrders>
+<GetItems></GetItems>
       <section className="hero">
         
         <h1>Alfa Engineering & Fabrication Works</h1>
@@ -36,7 +42,10 @@ export default function Home() {
       </section>
 
       {/* Services Section */}
-<Services></Services>
+      {/* <button className='oauthButton'>hi</button> */}
+      <Reviews></Reviews>
+      <Services></Services>
+      <Footer></Footer>
 {/* <Reviews></Reviews> */}
     </div>
   );
