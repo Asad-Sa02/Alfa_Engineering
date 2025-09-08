@@ -9,12 +9,16 @@ import GetOrders from '../components/GetOrders';
 import GetItems from '../components/GetItems';
 
 export default function Home() {
+  const token = sessionStorage['token'];
   return (
     <div className="homepage" id="home">
       <Navbar></Navbar>
       {/* Hero Section */}
-<GetOrders></GetOrders>
-<GetItems></GetItems>
+    {token===undefined?(<></>):(<>
+                                <GetItems></GetItems>
+                                 <GetOrders></GetOrders>
+                                 </>)}
+
       <section className="hero">
         
         <h1>Alfa Engineering & Fabrication Works</h1>
