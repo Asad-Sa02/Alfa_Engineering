@@ -10,7 +10,7 @@ try{
             token : sessionStorage.token
         }
     }
-    debugger
+    // debugger
     const response = await  axios.get(url,headers)
     return response.data;
 }
