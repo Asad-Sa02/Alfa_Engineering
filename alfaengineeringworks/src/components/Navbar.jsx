@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import '../App.css';
+import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 // import OrderModal from './cutomers/Order';
 
 export default function Navbar() {
   // const [isOrderModalOpen, setOrderModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const token = sessionStorage['token']
+  const cart = useSelector((state) => state.cart);
+  console.log('cart in navbar', cart);
   // Close menu after clicking a link (for mobile UX)
   const handleLinkClick = (callback) => (e) => {
     if (callback) callback(e);
@@ -53,16 +58,34 @@ export default function Navbar() {
             Map
           </a>
         </li>
-        <li>
-          <a href="/login" onClick={handleLinkClick()}>
+        
+             <li>
+          <a href="/cart">
+            cart {cart.items.length===0?'':'('+cart.items.length+')'}
+          </a>
+        </li>
+      
+        {token!==undefined?
+          <li>
+          <a href="/" onClick={()=>{
+            sessionStorage.removeItem('token')
+          }}>
+            Logout
+          </a>
+          </li>
+            :
+            <>
+            <li>
+          <a href="/login" onClick={handleLinkClick}>
             Sign In
           </a>
         </li>
-                <li>
-          <a href="/register" onClick={handleLinkClick()}>
+          <li>
+          <a href="/register" onClick={handleLinkClick}>
             Sign Up
           </a>
         </li>
+        </>}
         {/* <li>
           <a href="#order" onClick={handleLinkClick(() => setOrderModalOpen(true))}>
             Order
