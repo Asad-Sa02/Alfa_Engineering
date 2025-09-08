@@ -67,10 +67,6 @@ router.get('/order-details', async(req,res)=>{
 })
 
 
- router.get('/order-details/:username',async (req, res)=>{
-const {username} = req.body;
-// const st 
- })
 router.get('/order-detailsby/:username', async(req,res)=>{
     // console.log("detailsby api")
     const {username} = req.params;
